@@ -1,0 +1,206 @@
+
+{% extends "base.html" %}
+
+{% block title %}Financial Reports{% endblock %}
+
+{% block content %}
+
+<div class="container mt-3">
+
+    <h2 class="mb-4">Financial Reports</h2>
+
+    <div class="card shadow p-4 mb-4">
+        <h5>Select Report Period</h5>
+
+        <form method="GET" action="{{ url_for('reports') }}"
+              class="row g-3">
+
+            <div class="col-md-5">
+                <label class="form-label">Month</label>
+                <select name="month" class="form-select">
+                    {% for m in range(1, 13) %}
+                    <option value="{{ m }}"
+                        {% if m == selected_month %}selected{% endif %}>
+                        {{ month_names[m-1] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-5">
+                <label class="form-label">Year</label>
+                <select name="year" class="form-select">
+                    {% for y in years %}
+                    <option value="{{ y }}"
+                        {% if y == selected_year %}selected{% endif %}>
+                        {{ y }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    Generate
+                </button>
+            </div>
+        </form>
+
+        <a href="{{ url_for('export_report', month=selected_month, year=selected_year) }}"
+           class="btn btn-success mt-3">
+            Download CSV Report
+        </a>
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Total Income</h5>
+                <h3 class="text-success">
+                    ₹{{ "%.2f"|format(total_income) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Total Expenses</h5>
+                <h3 class="text-danger">
+                    ₹{{ "%.2f"|format(total_expenses) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Net Savings</h5>
+                <h3 class="text-primary">
+                    ₹{{ "%.2f"|format(net_savings) }}
+                </h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card shadow p-4 mb-4">
+        <h5>Category-wise Expense Report</h5>
+
+        {% if category_report %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Expenses (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category, amount in category_report %}
+                    <tr>
+                        <td>{{ category }}</td>
+                        <td>₹{{ "%.2f"|format(amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted mt-3">
+            No expenses found for this period.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Yearly Financial Summary -->
+    <h3 class="mb-3">Yearly Financial Summary - {{ selected_year }}</h3>
+
+    <div class="row mb-4">
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Yearly Income</h5>
+                <h3 class="text-success">
+                    ₹{{ "%.2f"|format(yearly_income) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Yearly Expenses</h5>
+                <h3 class="text-danger">
+                    ₹{{ "%.2f"|format(yearly_expenses) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Yearly Net Savings</h5>
+                <h3 class="text-primary">
+                    ₹{{ "%.2f"|format(yearly_savings) }}
+                </h3>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Yearly Monthly Breakdown -->
+    <div class="card shadow p-4 mb-4">
+
+        <h5>Month-wise Income vs Expenses</h5>
+
+        <div style="height: 350px;">
+            <canvas id="yearlyChart"></canvas>
+        </div>
+
+    </div>
+
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mb-4">
+        Back to Dashboard
+    </a>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const yearlyLabels = {{ yearly_months | tojson }};
+    const yearlyIncome = {{ yearly_monthly_income | tojson }};
+    const yearlyExpenses = {{ yearly_monthly_expenses | tojson }};
+
+    new Chart(document.getElementById('yearlyChart'), {
+        type: 'bar',
+        data: {
+            labels: yearlyLabels,
+            datasets: [
+                {
+                    label: 'Income (₹)',
+                    data: yearlyIncome
+                },
+                {
+                    label: 'Expenses (₹)',
+                    data: yearlyExpenses
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,65 @@
+
+{% extends "base.html" %}
+
+{% block title %}Edit Income - Expense Tracker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow p-4 mx-auto" style="max-width: 600px;">
+
+        <h3 class="mb-4">Edit Income</h3>
+
+        <form method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label class="form-label">Income Source</label>
+                <input
+                    type="text"
+                    name="source"
+                    class="form-control"
+                    value="{{ income.source }}"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Amount (₹)</label>
+                <input
+                    type="number"
+                    name="amount"
+                    class="form-control"
+                    value="{{ income.amount }}"
+                    min="0.01"
+                    step="0.01"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Date</label>
+                <input
+                    type="date"
+                    name="date"
+                    class="form-control"
+                    value="{{ income.date }}"
+                    required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Update Income
+            </button>
+
+            <a href="{{ url_for('income') }}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Budget</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+    <h2>Monthly Budget Management</h2>
+
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mb-3">
+        Back to Dashboard
+    </a>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card shadow p-4 mb-4">
+        <h4>Set Monthly Budget</h4>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label>Budget Amount (₹)</label>
+                <input type="number" name="amount"
+                       class="form-control" min="0.01"
+                       step="0.01" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Month</label>
+                <select name="month" class="form-select" required>
+                    <option value="">Select Month</option>
+                    {% for number, name in [
+                        (1, 'January'), (2, 'February'),
+                        (3, 'March'), (4, 'April'),
+                        (5, 'May'), (6, 'June'),
+                        (7, 'July'), (8, 'August'),
+                        (9, 'September'), (10, 'October'),
+                        (11, 'November'), (12, 'December')
+                    ] %}
+                        <option value="{{ number }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Year</label>
+                <input type="number" name="year"
+                       class="form-control" min="2000"
+                       max="2100" value="2026" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Save Budget
+            </button>
+        </form>
+    </div>
+
+    <div class="card shadow p-4">
+        <h4>Budget History</h4>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Year</th>
+                    <th>Budget Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for budget in budgets %}
+                <tr>
+                    <td>{{ month_names[budget.month] }}</td>
+                    <td>{{ budget.year }}</td>
+                    <td>₹{{ budget.amount }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">
+                        No budgets added yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

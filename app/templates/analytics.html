@@ -1,0 +1,169 @@
+
+{% extends "base.html" %}
+
+{% block title %}Analytics - Expense Tracker{% endblock %}
+
+{% block content %}
+
+<div class="container mt-3">
+
+    <h2 class="mb-4">Financial Analytics</h2>
+
+    <!-- Budget Summary -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Monthly Budget</h5>
+                <h3 class="text-primary">
+                    ₹{{ "%.2f"|format(budget_amount) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card shadow p-3 text-center">
+                <h5>Current Month Expenses</h5>
+                <h3 class="text-danger">
+                    ₹{{ "%.2f"|format(current_month_expenses) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Chart -->
+    <div class="card shadow p-4 mb-4">
+        <h5 class="mb-3">Category-wise Expenses (Current Month)</h5>
+
+        {% if category_labels %}
+            <div style="height: 350px; max-width: 550px; margin: auto;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        {% else %}
+            <p class="text-muted text-center">
+                No expense data available for this month.
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Monthly Chart -->
+    <div class="card shadow p-4 mb-4">
+        <h5 class="mb-3">
+            Monthly Income vs Expenses (Last 6 Months)
+        </h5>
+        <div style="height: 350px;">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Budget Chart -->
+    <div class="card shadow p-4 mb-4">
+        <h5 class="mb-3">Budget vs Actual Spending</h5>
+        <div style="height: 300px;">
+            <canvas id="budgetChart"></canvas>
+        </div>
+    </div>
+
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary mb-4">
+        Back to Dashboard
+    </a>
+
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    if (typeof Chart === 'undefined') {
+        console.error("Chart.js failed to load.");
+        return;
+    }
+
+    // Category-wise Expenses
+    const categoryLabels = {{ category_labels | tojson }};
+    const categoryAmounts = {{ category_amounts | tojson }};
+
+    const categoryCanvas = document.getElementById('categoryChart');
+
+    if (categoryCanvas && categoryLabels.length > 0) {
+        new Chart(categoryCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Expenses (₹)',
+                    data: categoryAmounts
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Monthly Income vs Expenses
+    const monthLabels = {{ month_labels | tojson }};
+    const monthlyExpenses = {{ monthly_expenses | tojson }};
+    const monthlyIncome = {{ monthly_income | tojson }};
+
+    new Chart(document.getElementById('monthlyChart'), {
+        type: 'bar',
+        data: {
+            labels: monthLabels,
+            datasets: [
+                {
+                    label: 'Income (₹)',
+                    data: monthlyIncome
+                },
+                {
+                    label: 'Expenses (₹)',
+                    data: monthlyExpenses
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Budget vs Actual Spending
+    const budgetAmount = {{ budget_amount | tojson }};
+    const currentExpenses = {{ current_month_expenses | tojson }};
+
+    new Chart(document.getElementById('budgetChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Monthly Budget', 'Actual Expenses'],
+            datasets: [{
+                label: 'Amount (₹)',
+                data: [budgetAmount, currentExpenses]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+});
+</script>
+
+{% endblock %}
